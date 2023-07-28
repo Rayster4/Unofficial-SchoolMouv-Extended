@@ -11,7 +11,7 @@
 
 ## Prerequisites
 
-Modules (see requirements.txt) : `bs4`, `requests`,  `tqdm`, `urllib==1.26.16`, `colorama` and `tk`*
+Modules (see requirements.txt) : `bs4`, `requests`,  `tqdm`, `urllib==1.26.16`, `colorama` and `tk`
 
 Python version : 3.6 and above
 
@@ -24,7 +24,7 @@ pip install bs4 requests tqdm urllib==1.26.16 colorama tk
 or 
 
 ```
-pip install -r requirements.txt`
+pip install -r requirements.txt
 ```
 
 ## Usage (see Examples folder)
