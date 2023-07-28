@@ -11,10 +11,18 @@ from typing import List
 
 Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
 
+#def suppr_up_line(n=1):
+#    for i in range(n):
+#        sys.stdout.write("\033[F")
+#        sys.stdout.write("\033[K")
+
 def suppr_up_line(n=1):
     for i in range(n):
-        sys.stdout.write("\033[F")
-        sys.stdout.write("\033[K")
+        # Move the cursor up one line
+        sys.stdout.write('\x1b[1A')
+        # Clear the entire line
+        sys.stdout.write('\x1b[2K')
+        sys.stdout.flush()
 
 def list_formating(var : List[str], indexed = True):
     if indexed:
