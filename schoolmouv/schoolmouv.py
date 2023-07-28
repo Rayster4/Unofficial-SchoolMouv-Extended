@@ -1,0 +1,237 @@
+"""
+@author:t0pl
+Warning: gibberish code
+This tool isn't affiliated to SchoolMouv in any way
+"""
+
+import requests
+from tqdm import tqdm
+from bs4 import BeautifulSoup
+import json
+import os
+import webbrowser
+import re
+
+class resource:
+    """Parent class
+    Argument : url (str)
+    Functions : validate -> bool : validation tests
+                download -> None : download 'url' into 'into' (folder) as 'save_as' (filename, default:None)
+                relevant_filename -> str : suggests a nice formatted filename
+    """
+
+    def __init__(self, url: str):
+        self.url = url.split("#")[0].split("?")[0]
+
+    def validate(self, url: str):
+        # no to be used for security improvement
+        pass
+
+    def download(self, url: str, into: str, save_as=None, overwrite=False):
+        if isinstance(url, list):
+            url = url[0]
+        if type(url) != str:
+            print(f'URL needs to be a string, not a {type(url).__name__}')
+            return False
+        if not os.path.exists(into):
+            print(
+                f'No such folder, consider changing the value passed in the \'into\' parameter')
+            return False
+        assert self.validate(url)
+        _ = requests.get(url)
+        assert _.status_code == 200
+        save_as = self.relevant_filename(url) if save_as == None else save_as
+        abs_path = os.path.abspath(os.path.join(into, save_as))
+        if os.path.exists(abs_path) and not overwrite:
+            print("File already exists, set overwrite to True to overwrite it anyway")
+            return False
+        file_size = int(_.headers.get('content-length', 0))
+        with open(abs_path, 'wb') as file_to_write:
+            with tqdm(total=file_size, unit='B', unit_scale=True, desc=save_as, ascii=True) as progress_bar:
+                for data in _.iter_content(chunk_size=1024):
+                    # Write data to file
+                    file_to_write.write(data)
+                    # Update the progress bar
+                    progress_bar.update(len(data))
+
+    def relevant_filename(self, url: str):
+        _ = ''
+        __ = url.split('/')[-2].capitalize().replace('-', ' ')
+        already_done = 0
+        for caract in __:
+            if already_done == 0 and caract.isnumeric():
+                _ += ' '+caract
+                already_done += 1
+            else:
+                _ += caract
+        _ = _.replace('  ', ' ')
+        return _+'.pdf' if url.endswith('.pdf') else _+'.mp4'
+
+    def see(self, url: str):
+        success = webbrowser.open_new_tab(url)
+        if not success:
+            return success
+
+
+class video(resource):
+    """
+    Argument : url (str), for eg: https://www.schoolmouv.fr/cours/little-red-riding-hood/cours-video
+    Functions : extract_json
+                get_source
+                get_direct_links
+                get_soup
+                ----------------
+                validate
+                download
+    """
+
+    def __init__(self, url: str):
+        super().__init__(url)
+        self.url = url
+        self.useful_headers = {
+            'Accept': '*/*',
+            'Accept-Encoding': 'gzip, deflate, br',
+            'Accept-Language': 'en-US,en;q=0.9,zh-CN;q=0.6,zh;q=0.5',
+            'DNT': '1',
+            'Referer': self.url,
+            'User-Agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4130.0 Safari/537.36'
+        }
+        self.basic_headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/84.0.4130.0 Safari/537.36 Edg/84.0.502.0'
+        }
+
+    def get_soup(self, url, headers={}):
+        headers = self.basic_headers if headers == {} else headers
+        for _ in range(5):
+            po = requests.get(url, headers=headers)
+            if po.status_code == 200:
+                return BeautifulSoup(po.content, 'html.parser')
+        raise ValueError
+     
+    def extract_json(self, mess_up):
+        mess_up = str(mess_up)
+        mess_up = mess_up.split('};')[0]+'}'
+        try:
+            mess_up = '{'+mess_up.split('= {')[1]
+        except IndexError:
+            try:
+                mess_up = '{'+mess_up.split('={')[1]
+            except:
+                return False
+        mess_up = json.loads(mess_up)
+        return mess_up
+
+    def get_source(self, mess_up):
+        assert 'sheet' in mess_up.keys()
+        _r = []
+        for _ in mess_up['sheet']['resources']:
+            _source = mess_up['sheet']['resources'][_]['source']
+            _r.append(_source)
+        return list(set(_r))
+
+    def get_direct_links(self, json_):
+        # print(json_)
+        assert 'request' in json_.keys()
+        return list(set([i['url'] for i in json_['request']['files']['progressive']]))
+        #keys : ['profile', 'width', 'mime', 'fps', 'url', 'cdn', 'quality', 'id', 'origin', 'height']
+
+    def run(self):
+        # 1st part
+        # GET https://www.schoolmouv.fr/cours/little-red-riding-hood/cours-video
+        soup = self.get_soup(self.url)
+        script_tag_containing_json = [
+            i for i in soup.find_all('script') if str(i).count("{") > 9]
+        #assert len(script_tag_containing_json)==1
+        # parsing json from <script> tag
+        self.script_tag_containing_json = self.extract_json(
+            script_tag_containing_json[0])
+        # extract unique 9-digit id, different for each video
+        sources = self.get_source(self.script_tag_containing_json)
+        # 2nd part
+        for _source in sources:
+            assert len(_source) == 9 and _source.isalnum()
+            # GET https://player.vimeo.com/video/9-DIGIT_ID?app_id=schoolmouv_app_id
+            soup__ = self.get_soup(
+                f'https://player.vimeo.com/video/{_source}', headers=self.useful_headers)  # ?app_id=122963
+            script_tag_containing_mp4 = [
+                i for i in soup__.find_all('script') if '.mp4' in str(i)]
+            self.script_tag_containing_mp4 = self.extract_json(
+                    script_tag_containing_mp4)
+            if not self.script_tag_containing_mp4:
+                continue
+            self.result = self.get_direct_links(self.script_tag_containing_mp4)
+
+    def validate(self, url: str) -> bool:
+        return url.endswith('.mp4') and url.startswith('https://vod-progressive.akamaized.net')
+
+
+class pdf(resource):
+    """
+    Argument : url (str), for eg: https://www.schoolmouv.fr/cours/little-red-riding-hood/fiche-de-cours
+    Functions : run
+                download
+    """
+
+    def __init__(self, url):
+        super().__init__(url)
+        self.valids = [
+            'corrige-bac', # Added by Rayster4
+            'scientifique',
+            'mouvement-litteraire',
+            'schema-bilan',
+            'fiche-methode-bac',
+            'fiche-de-revision',
+            'demonstration',
+            'repere',
+            'personnages-historique',
+            'lecon',
+            'fiche-materiel',
+            'evenement-historique',
+            'savoir-faire',
+            'fiche-methode',
+            'bien-rediger',
+            'fiche-pratique',
+            'auteur',
+            'philosophe',
+            'formule-ses',
+            'figure-de-style',
+            'fiche-annale',
+            'definition',
+            'algorithme',
+            'fiche-calculatrice',
+            'courant-philosophique',
+            'fiche-methode-brevet',
+            'fiche-de-cours',
+            'genre-litteraire',
+            'registre-litteraire',
+            'carte',
+            'fiche-de-lecture',
+            'fiche-oeuvre',
+            'notion'
+        ]
+        self.url = url
+
+    def run(self):
+        if len([i for i in self.valids if i in self.url]) > 0:
+            if self.url.startswith("https://www.schoolmouv.fr/"):
+                TO_BE_REPLACED = "www.schoolmouv.fr/eleves" if "/eleves/" in self.url else "www.schoolmouv.fr"
+                self.result = f"{self.url.replace(TO_BE_REPLACED,'pdf-schoolmouv.s3.eu-west-1.amazonaws.com')}.pdf"
+
+    def validate(self, url: str) -> bool:
+        return url.endswith('.pdf') and url.startswith('https://pdf-schoolmouv.s3.eu-west-1.amazonaws.com/')
+    
+"""
+@author:Rayster4
+Patch-note:Replace the decode function because the check mess up things and i don't know why [tell me whyyyy~]
+"""
+
+FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL
+WHITESPACE = re.compile(r'[ \t\n\r]*', FLAGS)
+WHITESPACE_STR = ' \t\n\r'
+
+def custom_decode(self, s, _w=WHITESPACE.match):
+    """A custom version of the decode function without the end check."""
+    obj, end = self.raw_decode(s, idx=_w(s, 0).end())
+    return obj
+    
+json.JSONDecoder.decode = custom_decode
