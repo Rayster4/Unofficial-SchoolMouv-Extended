@@ -1,4 +1,5 @@
 import schoolmouv.schoolmouv as schoolmouv
+from schoolmouv.Webscrap import WebScrap
 import os
 import colorama
 import pprint
@@ -104,7 +105,7 @@ def ask_dict(data : dict):
     return inp
 
 if __name__ == "__main__":
-    scrap = schoolmouv.WebScrap()
+    scrap = WebScrap()
     
     response = grade = index = path = subject = ""
     os.system("cls")
