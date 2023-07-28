@@ -6,8 +6,6 @@
 
  A great thanks to t0pl and his project [schoolmouv-python](https://github.com/Unofficial-SchoolMouv/schoolmouv-python). This repository is a extanded version of his work and it would not have happened without his remarkable work. 
 
- > Basically : 
-<br />
 &ensp;t0pl&emsp;&ensp;&ensp;&emsp;-> All stuff related to the download function of the script (schoolmouv.py)<br />
 &ensp;Rayster4&ensp;&ensp;-> All stuff related to the Webscraping function of the script (Webscrap.py)
 
@@ -57,9 +55,9 @@ git clone https://github.com/Rayster4/Unofficial-SchoolMouv-Extended
 
 Otherwise, if you are not familiar with git nor python : 
 
-- Download the branch by using the **Download zip** button under the green `<> code` button. <br />
+- Download the branch by using the **Download zip** button under the green `<> code` button.
 
-- Extract the filde downloaded in a folder
+- Extract into a folder
 
 - open a **terminal** in the folder with all files (windows button -> 'cmd')
 
