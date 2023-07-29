@@ -5,10 +5,11 @@ This tool isn't affiliated to SchoolMouv in any way
 """
 
 import requests
-import schoolmouv 
+from .schoolmouv import pdf, video
 from bs4 import BeautifulSoup
 import os
 import re
+
 
 class WebScrap():
     """WebScraping content from https://www.schoolmouv.fr/
@@ -37,13 +38,20 @@ class WebScrap():
             overwrite (bool): if need to overwrite
             path (str): The path where files will be downloaded
         """
-        if is_pdf:dl_object, ext = schoolmouv.pdf(url),"pdf"
-        else:dl_object, ext = schoolmouv.video(url),"mp4"
+
+        if is_pdf:dl_object, ext = pdf(url),"pdf"
+        else:dl_object, ext = video(url),"mp4"
         save_as_split = url.split("/")
         save_name = f'{save_as_split[-2]}_{save_as_split[-1]}.{ext}'
         dl_object.run()
         try:
             result = dl_object.result # result found (str) (direct url to pdf)
+            if isinstance(result, list):
+                _ = requests.get(result[0])
+                while len(_.headers.get('content-length', 0)) < 9:
+                    dl_object.run()
+                    result = dl_object.result
+                    _ = requests.get(result[0])
             dl_object.download(result, path, save_as=save_name, overwrite=overwrite) # type: ignore # Default filename is 'Echantillonage 2.pdf' (in this case)
         except Exception as e:
             print(f"An error has occured for {url} ({e})")

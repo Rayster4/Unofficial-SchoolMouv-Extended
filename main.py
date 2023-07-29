@@ -231,7 +231,7 @@ if __name__ == "__main__":
         print(colorama.Fore.YELLOW,end="")
         slow_type("Vous : ", end="\t")
         print(colorama.Fore.WHITE,end="")
-        inp = ask_dict(data=data)
+        inp = ask_dict(data=data1)
         index = list(data1.keys())[inp-1]
         slow_type(index)
         print()

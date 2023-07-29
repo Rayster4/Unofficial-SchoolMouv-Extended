@@ -46,6 +46,7 @@ class resource:
             print("File already exists, set overwrite to True to overwrite it anyway")
             return False
         file_size = int(_.headers.get('content-length', 0))
+        
         with open(abs_path, 'wb') as file_to_write:
             with tqdm(total=file_size, unit='B', unit_scale=True, desc=save_as, ascii=True) as progress_bar:
                 for data in _.iter_content(chunk_size=1024):
