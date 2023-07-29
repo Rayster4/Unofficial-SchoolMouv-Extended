@@ -12,9 +12,9 @@ webscrap = WebScrap()
 path = askdirectory()
 os.chdir(path=path)
 course = "https://www.schoolmouv.fr/cours/les-caracteristiques-du-capitalisme-des-annees-1920-/fiche-de-cours" # PDF
-webscrap().scrap(url=course, is_pdf=True, overwrite=False, path=os.getcwd())
+webscrap.scrap(url=course, is_pdf=True, overwrite=False, path=os.getcwd())
 course = "https://www.schoolmouv.fr/cours/les-caracteristiques-du-capitalisme-des-annees-1920-/cours-video" # Vidéo
-webscrap().scrap(url=course, is_pdf=False, overwrite=False, path=os.getcwd())
+webscrap.scrap(url=course, is_pdf=False, overwrite=False, path=os.getcwd())
 
 # All sections in the url
 path = askdirectory()

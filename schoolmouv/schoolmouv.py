@@ -223,7 +223,7 @@ class pdf(resource):
     
 """
 @author:Rayster4
-Patch-note:Replace the decode function because the check mess up things and i don't know why [tell me whyyyy~]
+Patch-note:Replace the decode function because the check mess up things and i don't know why [telll me whyyyy~]
 """
 
 FLAGS = re.VERBOSE | re.MULTILINE | re.DOTALL

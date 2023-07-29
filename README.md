@@ -71,4 +71,4 @@ cd C:\the_folder
 python main.py
 ```
 
-There is also a executable but windows seems to have taken a grudge against it, so, it's up to you.
+There is also a executable but windows seems to have taken a grudge against it, so, it's up to you. (it's safe)

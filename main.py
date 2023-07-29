@@ -11,11 +11,6 @@ from typing import List
 
 Tk().withdraw() # we don't want a full GUI, so keep the root window from appearing
 
-#def suppr_up_line(n=1):
-#    for i in range(n):
-#        sys.stdout.write("\033[F")
-#        sys.stdout.write("\033[K")
-
 def suppr_up_line(n=1):
     for i in range(n):
         # Move the cursor up one line

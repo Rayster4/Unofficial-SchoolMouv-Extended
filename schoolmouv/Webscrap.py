@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 import os
 import re
 
-
 class WebScrap():
     """WebScraping content from https://www.schoolmouv.fr/
 
